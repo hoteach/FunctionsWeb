@@ -33,7 +33,7 @@ namespace HoteachApi
             Event stripeEvent;
             try
             {
-                stripeEvent = EventUtility.ParseEvent(json);
+                stripeEvent = EventUtility.ParseEvent(json, throwOnApiVersionMismatch: false);
             }
             catch (StripeException ex)
             {
