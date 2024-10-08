@@ -15,19 +15,18 @@ namespace HoteachApi
 {
     public class StripeWebhookFunction
     {
-        private static readonly MongoClient _mongoClient = new(Environment.GetEnvironmentVariable("MongoDBConnectionString"));
-        private static readonly IMongoDatabase _database = _mongoClient.GetDatabase("hoteach-v1");
+        private readonly IMongoClient _mongoClient;
+
+        public StripeWebhookFunction(IMongoClient mongoClient)
+        {
+            _mongoClient = mongoClient;
+        }
 
         [Function("StripeWebhook")]
-        public static async Task<HttpResponseData> Run(
+        public async Task<HttpResponseData> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req,
             FunctionContext executionContext)
         {
-            var logger = executionContext.GetLogger("StripeWebhookFunction"); // Get logger from FunctionContext
-            logger.LogInformation("Processing Stripe webhook");
-
-            logger.LogInformation($"{Environment.GetEnvironmentVariable("MongoDBConnectionString")}");
-
             // Read the request body
             string json = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -39,7 +38,6 @@ namespace HoteachApi
             }
             catch (StripeException ex)
             {
-                logger.LogError($"Failed to parse Stripe event: {ex.Message}");
                 var badRequestResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
                 await badRequestResponse.WriteStringAsync("Invalid Stripe event.");
                 return badRequestResponse;
@@ -52,8 +50,8 @@ namespace HoteachApi
 
                 if (session != null)
                 {
-                    // MongoDB document creation
-                    var collection = _database.GetCollection<BsonDocument>("users");
+                    var database = _mongoClient.GetDatabase("hoteach-v1");
+                    var collection = database.GetCollection<BsonDocument>("users");
                     var document = new BsonDocument
                     {
                         { "CustomerId", session.CustomerId },
@@ -69,11 +67,9 @@ namespace HoteachApi
                             collection.InsertOneAsync(document),
                             SendConfirmationEmail(session)
                         );
-                        logger.LogInformation($"Successfully processed session for Customer: {session.CustomerId}");
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError($"Error processing Stripe session: {ex.Message}");
                         var errorResponse = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
                         await errorResponse.WriteStringAsync("Internal Server Error.");
                         return errorResponse;
@@ -85,13 +81,12 @@ namespace HoteachApi
                 }
             }
 
-            logger.LogWarning("Received an unsupported event type");
             var unsupportedResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
             await unsupportedResponse.WriteStringAsync("Unsupported event type.");
             return unsupportedResponse;
         }
 
-        private static async Task SendConfirmationEmail(Session session)
+        private async Task SendConfirmationEmail(Session session)
         {
             var client = new SendGridClient(Environment.GetEnvironmentVariable("SendGridApiKey"));
             var msg = new SendGridMessage
