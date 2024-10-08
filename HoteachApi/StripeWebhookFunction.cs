@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -10,7 +9,6 @@ using Stripe;
 using Stripe.Checkout;
 using System.IO;
 using System.Threading.Tasks;
-using System.Net.Http;
 using System;
 
 namespace HoteachApi
@@ -19,17 +17,14 @@ namespace HoteachApi
     {
         private static readonly MongoClient _mongoClient = new(Environment.GetEnvironmentVariable("MongoDBConnectionString"));
         private static readonly IMongoDatabase _database = _mongoClient.GetDatabase("hoteach-v1");
-        private static readonly HttpClient _httpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromMinutes(2) // Set timeout limit for long-running tasks
-        };
 
         [Function("StripeWebhook")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            ILogger log)
+        public static async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req,
+            FunctionContext executionContext)
         {
-            log.LogInformation("Processing Stripe webhook");
+            var logger = executionContext.GetLogger("StripeWebhookFunction"); // Get logger from FunctionContext
+            logger.LogInformation("Processing Stripe webhook");
 
             // Read the request body
             string json = await new StreamReader(req.Body).ReadToEndAsync();
@@ -42,8 +37,10 @@ namespace HoteachApi
             }
             catch (StripeException ex)
             {
-                log.LogError($"Failed to parse Stripe event: {ex.Message}");
-                return new BadRequestObjectResult("Invalid Stripe event.");
+                logger.LogError($"Failed to parse Stripe event: {ex.Message}");
+                var badRequestResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteStringAsync("Invalid Stripe event.");
+                return badRequestResponse;
             }
 
             // Handle checkout session completed
@@ -70,20 +67,26 @@ namespace HoteachApi
                             collection.InsertOneAsync(document),
                             SendConfirmationEmail(session)
                         );
-                        log.LogInformation($"Successfully processed session for Customer: {session.CustomerId}");
+                        logger.LogInformation($"Successfully processed session for Customer: {session.CustomerId}");
                     }
                     catch (Exception ex)
                     {
-                        log.LogError($"Error processing Stripe session: {ex.Message}");
-                        return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+                        logger.LogError($"Error processing Stripe session: {ex.Message}");
+                        var errorResponse = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
+                        await errorResponse.WriteStringAsync("Internal Server Error.");
+                        return errorResponse;
                     }
 
-                    return new OkObjectResult($"Processed: {stripeEvent.Id}");
+                    var successResponse = req.CreateResponse(System.Net.HttpStatusCode.OK);
+                    await successResponse.WriteStringAsync($"Processed: {stripeEvent.Id}");
+                    return successResponse;
                 }
             }
 
-            log.LogWarning("Received an unsupported event type");
-            return new BadRequestResult();
+            logger.LogWarning("Received an unsupported event type");
+            var unsupportedResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+            await unsupportedResponse.WriteStringAsync("Unsupported event type.");
+            return unsupportedResponse;
         }
 
         private static async Task SendConfirmationEmail(Session session)
