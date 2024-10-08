@@ -26,6 +26,8 @@ namespace HoteachApi
             var logger = executionContext.GetLogger("StripeWebhookFunction"); // Get logger from FunctionContext
             logger.LogInformation("Processing Stripe webhook");
 
+            logger.LogInformation($"{Environment.GetEnvironmentVariable("MongoDBConnectionString")}");
+
             // Read the request body
             string json = await new StreamReader(req.Body).ReadToEndAsync();
 
