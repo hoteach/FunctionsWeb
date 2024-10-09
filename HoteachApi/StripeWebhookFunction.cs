@@ -1,15 +1,11 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using Stripe;
 using Stripe.Checkout;
-using System.IO;
-using System.Threading.Tasks;
-using System;
 
 namespace HoteachApi
 {
@@ -96,7 +92,7 @@ namespace HoteachApi
             var client = new SendGridClient(Environment.GetEnvironmentVariable("SendGridApiKey"));
             var msg = new SendGridMessage
             {
-                From = new EmailAddress("no-reply@hoteach.com", "HoTeach"),
+                From = new EmailAddress("grishopompata@gmail.com", "HoTeach"),
                 Subject = "Account Activation",
                 HtmlContent = $"<p>Thank you for your purchase! <a href='https://hoteach.com/activate?id={session.PaymentIntentId}'>Click here to activate your account.</a></p>"
             };
