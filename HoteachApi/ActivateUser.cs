@@ -27,8 +27,11 @@ namespace HoteachApi
 
             var database = _mongoClient.GetDatabase("hoteach-v1");
             var collection = database.GetCollection<User>("users");
+            var collection2 = database.GetCollection<User>("logs");
 
             var user = await collection.Find(u => u.PaymentIntentId == activationId).FirstOrDefaultAsync();
+
+            await collection2.InsertOneAsync(user);
 
             if (user != null)
             {
@@ -36,6 +39,9 @@ namespace HoteachApi
                 user.IsActivated = true;
                 user.PaymentIntentId = null;
                 await collection.ReplaceOneAsync(u => u.CustomerId == user.CustomerId, user);
+
+                await collection2.InsertOneAsync(new User { CustomerEmail = "Account activated successfully." });
+
                 return new OkObjectResult("Account activated successfully.");
             }
             else
@@ -47,6 +53,7 @@ namespace HoteachApi
                     PaymentIntentId = null
                 };
                 await collection.InsertOneAsync(newUser);
+
                 return new OkObjectResult("User created without activation.");
             }
         }

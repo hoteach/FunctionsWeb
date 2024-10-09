@@ -11,6 +11,9 @@ namespace HoteachApi.Models
 {
     public class User
     {
+        [BsonId]
+        public ObjectId Id { get; set; }
+
         [BsonElement()]
         public string? CustomerId { get; set; }
         [BsonElement()]
