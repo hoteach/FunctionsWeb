@@ -24,21 +24,13 @@ namespace HoteachApi
 
         [Function("StripeWebhook")]
         public async Task<HttpResponseData> Run(
-               [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req,
-               FunctionContext executionContext)
+               [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            var logger = executionContext.GetLogger("StripeWebhook");
-
             // Read the request body
             string json = await new StreamReader(req.Body).ReadToEndAsync();
 
             var database = _mongoClient.GetDatabase("hoteach-v1");
             var collection = database.GetCollection<BsonDocument>("users");
-
-            await collection.InsertOneAsync(new BsonDocument
-            {
-                { "Delete", "blablalba" }
-            });
 
             // Parse the event from Stripe
             Event stripeEvent;
@@ -48,11 +40,17 @@ namespace HoteachApi
             }
             catch (StripeException ex)
             {
-                logger.LogError(ex, "Invalid Stripe event");
                 var badRequestResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
                 await badRequestResponse.WriteStringAsync("Invalid Stripe event.");
                 return badRequestResponse;
             }
+
+            await collection.InsertOneAsync(new BsonDocument
+            {
+                { "json", json },
+                { "req", req.ToString() },
+                { "stripeEvent", stripeEvent.ToJson() },
+            });
 
             // Handle checkout session completed
             if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
@@ -77,7 +75,6 @@ namespace HoteachApi
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Error processing Stripe event");
                         var errorResponse = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
                         await errorResponse.WriteStringAsync("Internal Server Error.");
                         return errorResponse;
@@ -86,10 +83,6 @@ namespace HoteachApi
                     var successResponse = req.CreateResponse(System.Net.HttpStatusCode.OK);
                     await successResponse.WriteStringAsync($"Processed: {stripeEvent.Id}");
                     return successResponse;
-                }
-                else
-                {
-                    logger.LogWarning("Stripe event object is not a Session");
                 }
             }
 
