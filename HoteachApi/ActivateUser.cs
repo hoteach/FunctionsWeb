@@ -35,10 +35,12 @@ namespace HoteachApi
 
             if (user != null)
             {
-                user.GoogleId = googleId;
-                user.IsActivated = true;
-                user.PaymentIntentId = null;
-                await collection.ReplaceOneAsync(u => u.CustomerId == user.CustomerId, user);
+                var updateDefinition = Builders<User>.Update
+                    .Set(u => u.GoogleId, googleId)
+                    .Set(u => u.IsActivated, true)
+                    .Unset(u => u.PaymentIntentId);
+
+                await collection.UpdateOneAsync(u => u.Id == user.Id, updateDefinition);
 
                 await collection2.InsertOneAsync(new User { CustomerEmail = "Account activated successfully." });
 
@@ -46,15 +48,7 @@ namespace HoteachApi
             }
             else
             {
-                var newUser = new User
-                {
-                    GoogleId = googleId,
-                    IsActivated = false,
-                    PaymentIntentId = null
-                };
-                await collection.InsertOneAsync(newUser);
-
-                return new OkObjectResult("User created without activation.");
+                return new OkObjectResult("No activation.");
             }
         }
     }
