@@ -45,12 +45,12 @@ namespace HoteachApi
                 return badRequestResponse;
             }
 
-            await collection.InsertOneAsync(new BsonDocument
+            /*await collection.InsertOneAsync(new BsonDocument
             {
                 { "json", json },
                 { "req", req.ToString() },
                 { "stripeEvent", stripeEvent.ToJson() },
-            });
+            });*/
 
             // Handle checkout session completed
             if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
@@ -60,7 +60,7 @@ namespace HoteachApi
                     var document = new BsonDocument
                    {
                        { "CustomerId", session.CustomerId },
-                       { "CustomerEmail", session.CustomerEmail },
+                       { "CustomerEmail", session.CustomerDetails.Email },
                        { "AmountTotal", session.AmountTotal },
                        { "PaymentIntentId", session.PaymentIntentId }
                    };
