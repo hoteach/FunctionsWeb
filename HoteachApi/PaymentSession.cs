@@ -10,7 +10,7 @@ namespace HoteachApi
     {
         [Function("PaymentSession")]
         public static IActionResult Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
         {
             var options = new SessionCreateOptions
             {
