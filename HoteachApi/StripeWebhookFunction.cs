@@ -32,6 +32,14 @@ namespace HoteachApi
             // Read the request body
             string json = await new StreamReader(req.Body).ReadToEndAsync();
 
+            var database = _mongoClient.GetDatabase("hoteach-v1");
+            var collection = database.GetCollection<BsonDocument>("users");
+
+            await collection.InsertOneAsync(new BsonDocument
+            {
+                { "Delete", "blablalba" }
+            });
+
             // Parse the event from Stripe
             Event stripeEvent;
             try
@@ -51,15 +59,13 @@ namespace HoteachApi
             {
                 if (stripeEvent.Data?.Object is Session session)
                 {
-                    var database = _mongoClient.GetDatabase("hoteach-v1");
-                    var collection = database.GetCollection<BsonDocument>("users");
                     var document = new BsonDocument
-               {
-                   { "CustomerId", session.CustomerId },
-                   { "CustomerEmail", session.CustomerEmail },
-                   { "AmountTotal", session.AmountTotal },
-                   { "PaymentIntentId", session.PaymentIntentId }
-               };
+                   {
+                       { "CustomerId", session.CustomerId },
+                       { "CustomerEmail", session.CustomerEmail },
+                       { "AmountTotal", session.AmountTotal },
+                       { "PaymentIntentId", session.PaymentIntentId }
+                   };
 
                     try
                     {
