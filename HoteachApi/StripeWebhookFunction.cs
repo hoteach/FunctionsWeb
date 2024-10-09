@@ -24,9 +24,11 @@ namespace HoteachApi
 
         [Function("StripeWebhook")]
         public async Task<HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req,
-            FunctionContext executionContext)
+               [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req,
+               FunctionContext executionContext)
         {
+            var logger = executionContext.GetLogger("StripeWebhook");
+
             // Read the request body
             string json = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -38,6 +40,7 @@ namespace HoteachApi
             }
             catch (StripeException ex)
             {
+                logger.LogError(ex, "Invalid Stripe event");
                 var badRequestResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
                 await badRequestResponse.WriteStringAsync("Invalid Stripe event.");
                 return badRequestResponse;
@@ -46,19 +49,17 @@ namespace HoteachApi
             // Handle checkout session completed
             if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
             {
-                var session = stripeEvent.Data.Object as Session;
-
-                if (session != null)
+                if (stripeEvent.Data?.Object is Session session)
                 {
                     var database = _mongoClient.GetDatabase("hoteach-v1");
                     var collection = database.GetCollection<BsonDocument>("users");
                     var document = new BsonDocument
-                    {
-                        { "CustomerId", session.CustomerId },
-                        { "CustomerEmail", session.CustomerEmail },
-                        { "AmountTotal", session.AmountTotal },
-                        { "PaymentIntentId", session.PaymentIntentId }
-                    };
+               {
+                   { "CustomerId", session.CustomerId },
+                   { "CustomerEmail", session.CustomerEmail },
+                   { "AmountTotal", session.AmountTotal },
+                   { "PaymentIntentId", session.PaymentIntentId }
+               };
 
                     try
                     {
@@ -70,6 +71,7 @@ namespace HoteachApi
                     }
                     catch (Exception ex)
                     {
+                        logger.LogError(ex, "Error processing Stripe event");
                         var errorResponse = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
                         await errorResponse.WriteStringAsync("Internal Server Error.");
                         return errorResponse;
@@ -78,6 +80,10 @@ namespace HoteachApi
                     var successResponse = req.CreateResponse(System.Net.HttpStatusCode.OK);
                     await successResponse.WriteStringAsync($"Processed: {stripeEvent.Id}");
                     return successResponse;
+                }
+                else
+                {
+                    logger.LogWarning("Stripe event object is not a Session");
                 }
             }
 
