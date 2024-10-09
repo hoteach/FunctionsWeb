@@ -93,12 +93,41 @@ namespace HoteachApi
             var msg = new SendGridMessage
             {
                 From = new EmailAddress("grishopompata@gmail.com", "HoTeach"),
-                Subject = "Account Activation",
-                HtmlContent = $"<p>Thank you for your purchase! <a href='http://localhost:5173/activate?id={session.PaymentIntentId}'>Click here to activate your account.</a></p>"
+                Subject = "Activate Your HoTeach Account",
+                HtmlContent = $@"
+                <html>
+                    <body style='font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f7f7f7;'>
+                        <div style='max-width: 600px; margin: auto; background-color: white; border-radius: 15px; padding: 40px; text-align: center;'>
+                            <div style='background-color: #ff3300; width: 80px; height: 80px; border-radius: 50%; margin: auto; display: flex; align-items: center; justify-content: center;'>
+                                <img src='https://i.imgur.com/zCDfngd.png' alt='Success' style='width:100%;' />
+                            </div>
+                            <h2 style='color: #333333; font-size: 28px; margin: 20px 0;'>Thank you for your purchase!</h2>
+                            <p style='color: #777777; font-size: 16px; margin-bottom: 20px;'>You're one step away from unlocking your full potential.</p>
+                            <a href='http://localhost:5173/activate?id={session.PaymentIntentId}' style='background-color: #ffe505; color: #000; border: 2px solid black; text-decoration: none; padding: 15px 30px; border-radius: 10px; font-size: 16px; font-weight: bold; display: inline-block;'>Activate Your Account</a>
+    
+                            <div style='margin-top: 40px; display: flex; justify-content: center; gap: 30px;'>
+                                <div style='text-align: center;'>
+                                    <img src='https://i.imgur.com/A6fCIRY.png' alt='Instant Access' style='width: 40px; height: 40px;' />
+                                    <p style='color: #333333; font-weight: bold; margin-top: 10px;'>Instant Access</p>
+                                </div>
+                                <div style='text-align: center;'>
+                                    <img src='https://i.imgur.com/xCgK3qC.png' alt='Exclusive Content' style='width: 40px; height: 40px;' />
+                                    <p style='color: #333333; font-weight: bold; margin-top: 10px;'>Exclusive Content</p>
+                                </div>
+                            </div>
+    
+                            <div style='margin-top: 30px;'>
+                                <p style='color: #777777;'>Your journey to success starts now!</p>
+                                <p style='color: #777777;'>Get ready to transform your career!</p>
+                            </div>
+                        </div>
+                    </body>
+                </html>"
             };
             msg.AddTo(new EmailAddress(email));
 
             await client.SendEmailAsync(msg);
         }
+
     }
 }
