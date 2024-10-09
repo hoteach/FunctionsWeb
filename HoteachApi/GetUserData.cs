@@ -36,7 +36,12 @@ namespace HoteachApi
             }
             else
             {
-                throw new ArgumentNullException(nameof(user));
+                var errorUser = new User
+                {
+                    IsActivated = false,
+                };
+
+                return new OkObjectResult(errorUser.ToJson());
             }
         }
     }
