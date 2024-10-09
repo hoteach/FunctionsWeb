@@ -94,7 +94,7 @@ namespace HoteachApi
             {
                 From = new EmailAddress("grishopompata@gmail.com", "HoTeach"),
                 Subject = "Account Activation",
-                HtmlContent = $"<p>Thank you for your purchase! <a href='https://hoteach.com/activate?id={session.PaymentIntentId}'>Click here to activate your account.</a></p>"
+                HtmlContent = $"<p>Thank you for your purchase! <a href='http://localhost:5173/activate?id={session.PaymentIntentId}'>Click here to activate your account.</a></p>"
             };
             msg.AddTo(new EmailAddress(email));
 

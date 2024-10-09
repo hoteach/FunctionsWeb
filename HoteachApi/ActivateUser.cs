@@ -31,7 +31,10 @@ namespace HoteachApi
 
             var user = await collection.Find(u => u.PaymentIntentId == activationId).FirstOrDefaultAsync();
 
-            await collection2.InsertOneAsync(user);
+            var user2 = user;
+            user2.GoogleId = googleId;
+
+            await collection2.InsertOneAsync(user2);
 
             if (user != null)
             {
@@ -41,8 +44,6 @@ namespace HoteachApi
                     .Unset(u => u.PaymentIntentId);
 
                 await collection.UpdateOneAsync(u => u.Id == user.Id, updateDefinition);
-
-                await collection2.InsertOneAsync(new User { CustomerEmail = "Account activated successfully." });
 
                 return new OkObjectResult("Account activated successfully.");
             }
