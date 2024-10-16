@@ -22,7 +22,7 @@ namespace HoteachApi
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            string googleId = data?.googleId;
+            string? googleId = data?.googleId;
             string activationId = data?.paymentIntentId;
 
             var database = _mongoClient.GetDatabase("hoteach-v1");
