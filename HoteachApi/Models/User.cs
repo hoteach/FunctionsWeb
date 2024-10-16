@@ -26,5 +26,7 @@ namespace HoteachApi.Models
         public string? GoogleId { get; set; }
         [BsonElement()]
         public bool IsActivated { get; set; } = false;
+        [BsonElement()]
+        public bool HasPreferences { get; set; } = false;
     }
 }
