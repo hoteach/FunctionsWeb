@@ -28,5 +28,7 @@ namespace HoteachApi.Models
         public bool IsActivated { get; set; } = false;
         [BsonElement()]
         public bool HasPreferences { get; set; } = false;
+        [BsonElement()]
+        public bool HasLearningPath { get; set; } = false;
     }
 }

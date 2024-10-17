@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
+using OpenAI.Chat;
 //using Microsoft.Extensions.Logging;
 
 var host = new HostBuilder()
@@ -10,6 +12,7 @@ var host = new HostBuilder()
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
+        services.AddSingleton(new ChatClient(model: "gpt-4o-mini", Environment.GetEnvironmentVariable("OpenAIApiKey")));
 
         var mongoConnectionString = Environment.GetEnvironmentVariable("MongoDBConnectionString");
         if (string.IsNullOrEmpty(mongoConnectionString))

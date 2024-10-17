@@ -103,7 +103,7 @@ namespace HoteachApi
                             </div>
                             <h2 style='color: #333333; font-size: 28px; margin: 20px 0;'>Thank you for your purchase!</h2>
                             <p style='color: #777777; font-size: 16px; margin-bottom: 20px;'>You're one step away from unlocking your full potential.</p>
-                            <a href='http://localhost:5173/activate?id={session.PaymentIntentId}' style='background-color: #ffe505; color: #000; border: 2px solid black; text-decoration: none; padding: 15px 30px; border-radius: 10px; font-size: 16px; font-weight: bold; display: inline-block;'>Activate Your Account</a>
+                            <a href='http://localhost:5173/activate/id?{session.PaymentIntentId}' style='background-color: #ffe505; color: #000; border: 2px solid black; text-decoration: none; padding: 15px 30px; border-radius: 10px; font-size: 16px; font-weight: bold; display: inline-block;'>Activate Your Account</a>
     
                             <div style='margin-top: 40px; display: flex; justify-content: center; gap: 30px;'>
                                 <div style='text-align: center;'>
