@@ -18,7 +18,7 @@ namespace HoteachApi.Contracts.Helpers
                 "objectives, and let's embark on a journey towards mastery, efficiency, and success in your chosen field. " +
                 "Our platform not only suggests relevant materials and exercises but also adjusts dynamically " +
                 "to your evolving competences, ensuring you stay motivated and engaged. Discover the future of " +
-                "personalized learning today and transform how you acquire and apply knowledge and skills in real-world scenarios."
+                "personalized learning today and transform how you acquire and apply knowledge and skills in real-world scenarios.";
         }
 
         public static string UserMessage(UserPreferences preferences)
